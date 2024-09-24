@@ -1,0 +1,222 @@
+SUBSISTEMA E/S
+
+El subsistema de E/S comprende los dispositivos que están conectados al bus del sistema y proveen los servicios de transferencia de datos con los Periféricos.
+Debido a la gran variedad de Periféricos con los que se requiere intercambiar información, el subsistema de E/S tiene que ser lo suficientemente flexible para permitir:
+	➢ Trasmisión de diferentes cantidades de datos
+	➢ Rango de velocidades de transmisión muy amplio.
+	➢ Diferentes formatos de dato y tamaño de palabra.
+En general, todos los Periféricos son más lentos que la CPU y la Memoria. Los dispositivos que forman parte del subsistema de E/S permiten descongestionar el trabajo de la CPU.
+
+Módulo de interfaz (“Puerto”) de E/S
+	➢ Los dispositivos más sencillos para implementar las transferencias de E/S con periféricos son los Puertos de E/S.
+	➢ Los puertos de E/S realizan la interfaz entre el procesador/memoria y un periférico.
+	➢ Son, por lo común, administrado por el SO a través de drivers específicos.
+
+La conexión con el Periférico provee 2 tipos de informaciones:
+	➢ 1.- Datos: Información útil a transferir
+	➢ 2.- Control y Estado: información que permite realizar la transferencia (en lo posible libre de errores). Por ejemplo: sentido
+	  de la transferencia (de entrada, de salida), operación (de lectura,
+	  de escritura), estado del periférico (listo, no-listo, en falla).
+
+Puerto de E/S:
+➢ El Puerto de E/S debe ejecutar 2 tipos de comunicaciones:
+	1.- Hacia el Periférico (comunicaciones externas con la periferia):
+		• Transferir datos con el periférico (incluye adaptación eléctrica).
+		• Controlar y temporizar uno o más dispositivos externos.
+		• Almacenar temporalmente datos (“buffer”).
+		• Detectar errores.
+	2.- Hacia el Bus (internas con CPU y Memoria):
+		• Interpretar las órdenes que recibe de CPU y transmitirlas al periférico.
+		• Transferir datos con la CPU (registros) y Memoria.
+		• Informar a la CPU del estado del periférico.
+
+Tipos de Puerto de E/S básicos
+	➢ Puerto paralelo: hay varias líneas de datos (n) que transfieren n bits simultáneamente entre el puerto de E/S y el periférico.
+	➢ Ejemplos: impresora paralelo, scanner,
+	➢ Se requiere disponer de una conexión mediante un cable que incluya al menos los n bits de datos, lo que lo hace un método bastante costoso.
+
+Tipos de Puerto de E/S básicos
+	➢ Puerto serie: hay 1 línea de dato para la transferencia entre el puerto de E/S y el periférico.
+	➢ Ejemplos: impresora serie, red Ethernet, mouse, teclado, etc.
+	➢ Se requiere disponer de una conexión mediante un cable sencillo. El costo es mucho menor.
+	➢ Los datos deben serializarse (transmitirse de 1 bit por vez, uno a continuación del otro) lo que en teoría sería mucho más lento que transmitir de a n bits simultáneamente, como lo hace el puerto paralelo.
+
+Registros de un Puerto de E/S
+Desde el punto de vista de la CPU, una operación de E/S requiere acceder a los registros internos del Módulo de Interfaz de E/S. Los registros pueden ser de lectura y/o escritura.
+	➢ Dentro de Módulo de E/S hay 2 tipos de registros:
+		➢ de DATOS: interviene en la transferencia de entrada o de salida del dato a intercambiar entre el Sistema de cómputo y el periférico.
+		➢ de CONTROL: registros que controlan y registran el funcionamiento del módulo, la transferencia, y el periférico.
+
+	de Datos: la transferencia de un dato entre el Sistema de cómputo y el periférico consiste básicamente en:
+		➢ Operación de entrada: lectura de un registro de dato de entrada (es decir un registro escrito por el periférico y leído por la CPU)
+		➢ Operación de salida: escritura de un registro de dato de salida (es decir, un registro escrito por la CPU y leído por el periférico).
+
+	de Control y Estado: la supervisión y/o control de la transferencia requiere de:
+		➢ Control: adecuar la configuración del módulo para ajustar formatos, sincronizaciones, etc.
+		➢ Estado: registrar el estado operativo del módulo y del periférico.
+
+Acceso al Subsistema de E/S
+Desde el punto de vista de la CPU, el Subsistema de E/S está compuesto por un conjunto de registros a los que accede para una operación de entrada o de salida.
+Existen 2 técnicas de acceso a estos registros:
+	➢ Espacio de E/S compartido con memoria (memory-mapped)
+	➢ Espacio de E/S separada de la memoria
+
+Espacio de E/S compartido con memoria (memory-mapped)
+	➢ En está técnica los registros de los dispositivos de E/S y memoria comparten un único espacio de direcciones.
+	➢ Los registros de la E/S se comportan idéntico a una memoria de lectura/escritura.
+	➢ No hay instrucciones específicas para E/S, se usan las mismas instrucciones de movimiento de datos a memoria.
+Espacio de E/S separado de memoria (modelo Intel)
+	➢ En está técnica los registros de los dispositivos de E/S y la memoria están en diferentes espacios de direcciones.
+	➢ Dado que el bus de direcciones es compartido por la memoria y el subsistema de E/S, se requieren señales de control adicionales para identificar a donde está accediendo la CPU: a la memoria, o a la E/S.
+	➢ Hay instrucciones específicas de E/S, distintas de las instrucciones de acceso a la memoria.
+	➢ El procesador dispone de instrucciones específicas para acceder a los registros que están en el subsistema de E/S.
+	➢ Cuando se ejecutan estas instrucciones específicas, en el bus de control se identifica el acceso al mapa de direcciones de E/S. Para el resto de las instrucciones en el bus de control se identifica el acceso a la Memoria.
+
+Gestión de la transferencia:
+
+Desde el punto de vista de la gestión para transferir datos entre el Sistema de cómputo y el periférico, existen 3 estrategias básicas de implementación:
+	➢ E/S Programada y espera de respuesta
+	➢ E/S Programada y administrada por interrupción
+	➢ E/S con acceso directo a memoria (DMA)
+Las 2 primeras opciones requieren intervención directa de la CPU, es decir, que la CPU participa en la transferencia de todos los datos (byte o word) a transferir.
+
+E/S Programada y espera de respuesta:
+	➢ La CPU interviene directamente en la transferencia de cada unidad de información (byte, word) con el módulo.
+	➢ Es decir que la CPU tiene control casi directo sobre la operación de E/S. Entre otras acciones hace:
+		➢ Comprueba el estado del dispositivo
+		➢ Envía los comandos requeridos (por ejemplo de lectura, escritura)
+		➢ Realiza la transferencia de todos los datos (de a uno)
+	➢ En cada dato que es transferido, la CPU espera que el módulo E/S termine la operación, típicamente que el periférico “acepte” el dato.
+	➢ Durante la espera, la CPU permanece ociosa (no deseable).
+
+La secuencia de acciones que ejecuta la CPU son :
+1. La CPU verifica el estado de periférico (preparado/no-preparado) leyendo un registro del módulo de interfaz.
+2. Examina el estado del periférico chequeando el bit (o bits) que identifican dicho estado.
+3. Si el dispositivo no está listo (por ejemplo bit=0), la CPU vuelve al paso 1. Este lazo significa que la CPU “espera” hasta que el periférico se pone en “preparado”, es decir, listo para la transferencia.
+4. Cuando el dispositivo está listo, la CPU transfiere 1 dato hacia o desde el módulo de interfaz.
+5. Si hay más datos que transferir vuelve al paso 1.
+6.- Si se completó la transferencia, termina el servicio de E/S.
+
+ACCESO DIRECTO A MEMORIA (DMA):
+El controlador de DMA es un dispositivo capaz de controlar una transferencia de datos entre un periferico y memoria sin intervencion de la CPU.
+El Controlador de DMA (DMAC) debe actuar como maestro del bus durante la transferencia DMA y debe ser capaz de
+	• Solicitar el uso del bus mediante las señales y la lógica de arbitraje necesarias
+	• Especificar la dirección de memoria sobre la que se realiza la transferencia
+	• Generar las señales de control del bus
+		• Tipo de operación (lectura/escritura)
+		• Señales de sincronización de la transferencia
+
+➢ Dado que la transferencia por DMA requiere el uso del Bus, tanto el DMAC como la CPU pueden tomarlo. El DMAC y la CPU “compiten” por el uso del Bus.
+➢ Cuando el DMAC toma el Bus, actúa como “master” durante la transferencia por DMA, y debe ser capaz de:
+	➢ Solicitar el uso del bus mediante las señales y la lógica de arbitraje necesarias
+	➢ Especificar la dirección de memoria sobre la que se realiza la transferencia
+	➢ Generar las señales de control del bus
+	➢ Especificar el tipo de operación (lectura/escritura)
+	➢ Generar las señales de sincronización de la transferencia
+	➢ Cuando la CPU entrega el bus al DMAC, se desconecta lógicamente del mismo, y es el DMAC el que toma el control del bus.
+
+➢ El proceso de transferencia requiere realizar una serie de acciones o fases relativamente complejas. Las principales son:
+	➢ 1.- Fase de Inicialización
+	➢ 2.- Fase de ejecución de la transferencia
+	➢ 3.- Fase de finalización y análisis de la transferencia
+
+➢ 1.- Fase de inicialización
+En la fase de inicialización la CPU debe configurar el módulo de E/S y el DMAC con los parámetros de la transferencia.
+	➢ Inicialización interfaz de E/S:
+		➢Tipo de transferencia (lectura/escritura)
+		➢Configuración del periférico
+		➢Otra información de control para el periférico (por ejemplo si es un disco se especifica el número de pista, sector, etc.)
+	➢ Inicialización DMAC
+		➢Nro de bytes o palabras a transferir
+		➢Tipo de transferencia (lectura/escritura)
+		➢Dirección de memoria inicial para la transferencia
+		➢Otra información la transferencia.
+➢ 2.- Fase de ejecución de la transferencia
+	➢ Cuando el periférico está listo, pide al DMAC iniciar la transferencia mediante una señal física.
+	➢ Cuando el DMAC recibe el pedido del periférico, pide el control del bus mediante alguna señal especial a la CPU. La CPU típicamente dispone de algunas señales destinadas a implementar las transferencias por DMA.
+	➢ Cuando reconoce el pedido de DMA, la CPU entrega (libera) el bus y se “desconecta” (ya no controla el bus) lógicamente del mismo.
+	➢ La CPU avisa al DMAC que liberó el bus mediante otra señal especial.
+	➢ Al liberar la CPU el bus, el DMAC toma el control del bus y ejecuta la transferencia hasta terminarla.
+	➢ El DMAC avisa al periférico que puede iniciar la transferencia.
+	➢ El periférico comienza a transferir los datos, a través de bus, con la memoria, de a uno por vez.
+	➢ La transferencia implica que:
+		➢Bus master: DMAC + Periférico - Bus slave: Memoria
+	➢ Después de la transferencia de cada palabra se actualizan los registros del DMAC:
+		➢No de bytes faltantes (o cuenta de los que se transfirieron)
+		➢Próxima dirección de memoria a donde guardar el dato (anterior o posterior de la corriente)
+	➢ Cuando el número de bytes faltantes es igual a 0 significa que transfirió todos los datos y terminó la transferencia.
+➢ 3.- Finalización de la transferencia
+	➢ Una vez que termina la fase 2, el DMAC libera el bus y le avisa a la CPU por medio de una señal física.
+	➢ La CPU retoma el control del bus.
+	➢ El DMAC suele activar, además, una señal de interrupción para indicar a la CPU la finalización de la operación de E/S solicitada.
+	➢ La CPU, mediante la interrupción, verifica el resultado de la transferencia vía los registros internos del DMAC. Algunos resultados a verificar son:
+		➢Transferencia OK/fallida?
+		➢Errores? Tipo de errores?
+		➢Estado periférico
+
+VENTAJAS Y DESVENTAJAS DEL DMA
+Ventajas e inconvenientes del DMA
+➢ La principal ventaja es la eficiencia, dado que la CPU se libera de tener que controlar la transferencia de los datos. Solo prepara la transmisión, y verifica el resultado de la misma.
+➢ La principal desventaja se origina en el uso del bus. Como las transferencias por DMA pueden tener mayor prioridad que la CPU, se puede degradar el rendimiento de la CPU si el DMAC hace uso intensivo del bus.
+
+Ventajas e inconvenientes del DMA
+➢ Sin embargo, no necesariamente la CPU necesite todo el tiempo el bus porque:
+	➢ En el caso de Computadoras con memoria caché:
+		➢ La mayor parte del tiempo, la CPU lee instrucciones de la cache, por lo que no necesita usar uco el bus de memoria.
+		➢ El DMAC puede aprovechar estos intervalos en los que la CPU está leyendo instrucciones de la cache (y por tanto no usa el bus de memoria) para realizar las transferencias.
+	➢ En el caso de computadores sin cache
+		➢ El procesador no utiliza el bus en todas las fases de la ejecución de una instrucción.
+		➢ El DMAC puede aprovechar las fases de ejecución de una instrucción en las que la CPU no utiliza el bus.
+
+• Si el DMAC sólo toma el control del bus durante los intervalos de tiempo en los que la CPU no hace uso del mismo el rendimiento del sistema no sufrirá degradación alguna
+• Se distinguen dos tipos de transferencias:
+	• Por ráfagas (burst)
+	• Por robo de ciclo (cycle-stealing)
+
+Método de transferencia de DMA por ráfaga
+➢ Es la vista hasta ahora. El DMAC solicita el control del bus a la CPU.
+➢ Cuando la CPU concede el bus, el DMAC no lo libera hasta haber finalizado la transferencia de todo el bloque de datos completo.
+➢ VENTAJAS:
+La transferencia se realiza de forma muy rápida, limitada por la velocidad del periférico.
+➢ DESVENTAJAS:
+Durante el tiempo que dura la transferencia la CPU no puede utilizar el bus con memoria, lo que puede degradar el rendimiento del sistema.
+
+Método de transferencia de DMA por robo de ciclo
+➢ El DMAC solicita el control del bus a la CPU.
+➢ Cuando la CPU concede el bus al DMAC, se realiza la transferencia de una única palabra y después el DMAC libera el bus.
+➢ El DMAC solicita el control del bus tantas veces como sea necesario hasta finalizar la transferencia del bloque completo. El uso del bus se reparte entre la CPU y el DMAC.
+➢ VENTAJAS: No se degrada tanto el rendimiento del sistema y de la CPU.
+➢ DESVENTAJAS: La transferencia puede tardar un poco más de tiempo.
+
+(➢ Notar que dado que la toma y liberación del bus por parte de la CPU no es una interrupción, es decir que el procesador no debe guardar el contexto (es decir, no está interrumpiendo su tarea).
+➢ Si bien el trabajo de la CPU es más lento (que si no estuviera presente la transferencia por DMA), no será tanto como si ella tuviera que estar desconectada del bus todo el tiempo.
+➢ En general, para transferencia de E/S de múltiples palabras, la técnica por robo de ciclo es la más eficiente, ya que permite implementar la transferencia por DMA al mismo tiempo que la CPU continúa trabajando en su tarea.)
+
+Canales de E/S
+
+➢ Las transferencias de E/S se pueden dividir, en función de la capacidad para interactuar con los periféricos, en varios niveles:
+	➢ Nivel 1: CPU + Módulo de Interfaz de E/S o controlador: la CPU controla directamente los periféricos e interfaz, y administra la transferencia por programa (con espera).
+	➢ Nivel 2: CPU + Módulo de Interfaz E/S o controlador con interrupción: la CPU controla directamente los periféricos y administra la transferencia con programa e interrupciones.
+	➢ Nivel 3: DMA (DMAC + Módulo de E/S): la CPU no interviene directamente, solo prepara y supervisa la transferencia.
+	➢ Nivel 4: Canal de E/S básico (Procesador básico + módulo de E/S): la CPU interviene mínimamente.
+	➢ Nivel 5: Canal de E/S inteligente (Procesador inteligente + módulo de E/S): la CPU no interviene, excepto situaciones especiales.
+	➢ En el nivel más alto de la escala de transferencias de E/S están los canales de E/S, que representan una extensión al concepto de DMA.
+	➢ Los canales de E/S tienen la habilidad de ejecutar programas de servicios de E/S, lo que les permite tener un completo control de la transferencia de datos. La CPU no ejecuta las instrucciones de E/S, las realiza el procesador
+	incluido en el canal. El programa que ejecuta el procesador interno del canal está almacenado en la memoria principal.
+	➢ La CPU solamente interviene para iniciar la transferencia, y dar la orden de ejecutar el programa de E/S que está en memoria. El programa de servicio de E/S especifica dispositivos, áreas de memoria a usar, prioridades y
+	acciones ante errores.
+
+➢ Hay 2 tipos básicos de canales de E/S:
+➢ Selector
+➢ Multiplexor
+➢ Canal selector de E/S
+	➢ El canal controla varios dispositivos de alta velocidad, de a uno por vez.
+	➢ El canal selecciona un dispositivo y efectúa la transferencia sobre el dispositivo seleccionado.
+	➢ Cada dispositivo tiene asociado un controlador o módulo de E/S que lo maneja.
+	➢ Por lo tanto el canal de E/S ocupa el lugar de la CPU en el control del módulo de E/S.
+➢ Canal Multiplexor de E/S
+	➢ El canal controla varios dispositivos de alta velocidad, incluso simultáneamente.
+	➢ El canal mutiplexa la atención entre los dispositivos seleccionados. El multiplexado puede ser:
+		➢ Multiplexor de bytes: acepta y transmite de a caracteres.
+		➢ Multiplexor de bloques: intercala bloques de datos desde distintos dispositivos.
+

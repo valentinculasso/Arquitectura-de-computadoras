@@ -1,0 +1,98 @@
+interrupcion: es forzar a que la UC de la CPU en vez de ejecutar cierta secuencia de instrucciones, ejecute
+la primer instruccion de una secuencia nueva, que lo que hace es intentar salir de ese "mal estado" en el
+que se encuentra la computadora, por eso se llama interrumpir.
+
+Gestor de interrupcion: es un programa que va a responder a un caso particular de interrupcion.
+
+Antes de darle control al gestor, la Unidad de Control guarda (o salva) el estado del procesador. El estado
+consiste primordialmente de dos cosas: el valor del contador del programa (PC) que indica donde esta, y un
+registro de estado que refleja las banderas y otras cosas que tienen los procesadores.
+
+Este programa (gestor) lo que hace es:
+- correjir la causa que ocasiono la interrupcion
+- restaurar el estado original del procesador
+- retornar a la ejecucion normal del programa interrumpido 
+
+¿Como retorno? : cuando anteriormente salvamos el estado del procesador tambien salvamos el PC, el cual 
+guardamos (o se guardo) en la pila. Por lo tanto se saca de la pila la direccion de la siguiente instruccion luego del
+CALL en el programa principal.
+
+Cuando retorno continuo con la siguiente instruccion.
+En los procesadores modernos se repite la instruccion interrumpida.
+
+Jerarquia de interrupciones: si hay multiples fuentes que solicitan una interrupcion, se establece cuales
+son mas importantes.
+Hay dos tipos enmascarables y no enmascarables.
+No enmascarables: son las que NO pueden ser ignoradas. Estas indican eventos peligrosos o de alta prioridad.
+(como por ejemplo un corte de energia electrica).*
+Enmascarables: pueden ser ignoradas. Con instrucciones podemos inhibir la posible solicitud, esto es para que la
+unidad de control se entere que puede ignorar el problema.
+(por ejemplo la impresora -> "no tengo papel" -> no imprimo -> imprimo luego).*
+
+Interrupciones por Hardware:
+Son generadas por dispositivos de Entrada y Salida (son las "verdaderas" interrupciones), la unidad de control tiene
+que ser capaz de manejar o administrar estas solicitudes que son no planeadas o asincronicas. (La solicitud de inte-
+rrupciones es un evento asincronico). Son conocidas como "solicitudes de interrupcion", son señales electricas que 
+de alguna manera llega a la CPU.
+
+Traps/excepciones:
+Son internas a la CPU, requieren la misma respuesta de un gestor especifico para solucionar dicho problema.
+Interrupciones por hardware creadas por el procesador en respuesta a ciertos eventos como:
+- Condiciones excepcionales: Overflow en ALU de punto flotante.
+- Falla de programa: Tratar de ejecutar una instruccion no definida (ej: cod de operacion: no existe).
+- Falla de hardware: falla en la memoria.
+- Accesos no alineados (acceso a la memoria con el tamaño de la palabra que necesitamos) o zonas de memoria protegidas.
+
+Interrupciones por software:
+Es una interrupcion provocada por una instruccion cuyo resultado genera los mismos problemas que una interrupcion
+por hardware (es como si viniera una interrupcion por hardware, no es un programa). No todos los procesadores
+tienen estas instrucciones.
+**Son instrucciones explicitas que afectan a la Unidad de Control de la misma manera que las afecta una solicitud
+de interrupcion por hardware.**
+PD: **: definicion
+-Son usadas para hacer llamadas a funciones del Sistema Operativo.
+-No requieren conocer la direccion de la rutina en tiempo de ejecucion
+-Permiten deputar los gestores de interrupcion
+
+Ciclo de instruccion:
+Consta de 3 pasos: captacion, ejecucion, gestor de interrupciones (ciclo de interrupcion).
+
+Ciclo de interrupcion:
+Se comprueba si se ha solicitado una interrupcion (indicada por una señal flag).
+Si no hay señal se capta la siguiente instruccion.
+Si hay algun pedido de interrupcion pendiente:
+	- Se suspende la ejecucion del programa en curso.
+	- Guarda su estado.
+	- Carga el PC con la direccion de comienzo del gestor de una rutina de gestion de interrupcion. Se inhiben
+	  otras interrupciones.
+	- Finaliza la rutina del gestor, el procesador retoma la ejecucion del programa en el punto de interrupcion.
+
+Interrupciones multiples: 
+
+-Interrupciones inhabilitadas:
+	- El procesador no se va a enterar que quiere interrumpir, puede y debe ignorar la señal de peticion
+	  de interrupcion si se produce una interrupcion en ese momento.
+	- Si se hubiera generado una interrupcion se mantiene pendiente y se examinara luego una vez que se hayan
+	  habilitado nuevamente.
+	- Ocurre una interrupcion, se inhabilitan, se gestiona la misma y luego se habilitan otra vez.
+	- Por lo tanto las interrupciones se manejan en un orden secuencial estricto.
+
+Una interrupcion de prioridad mas alta puede interrumpir a un gestor de interrupcion de prioridad menor. Cuando se ha
+gestionado la interrupcion de prioridad mas alta, el procesador vuelve a las interrupciones previas. Terminadas todas
+las rutinas de gestion de interrupciones se retoma el programa del usuario.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
